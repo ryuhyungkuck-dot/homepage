@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAXC | 제조 현장을 데이터로 바꾸다</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #f0f4f8;
+  --surface:  #ffffff;
+  --surface2: #f8fafc;
+  --border:   #e2e8f0;
+  --border2:  #cbd5e1;
+  --accent:   #2563eb;
+  --accent-h: #1d4ed8;
+  --accent-l: #eff6ff;
+  --teal:     #0ea5e9;
+  --green:    #10b981;
+  --orange:   #f59e0b;
+  --red:      #ef4444;
+  --heading:  #0f172a;
+  --text:     #334155;
+  --muted:    #94a3b8;
+  --mono:     'IBM Plex Mono', monospace;
+  --sans:     'Noto Sans KR', sans-serif;
+  --display:  'Plus Jakarta Sans', sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;line-height:1.7;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;
+  background-image:radial-gradient(circle,rgba(37,99,235,.07) 1px,transparent 1px);
+  background-size:32px 32px;pointer-events:none;z-index:0}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;
+  justify-content:space-between;padding:0 5vw;height:62px;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--border);box-shadow:0 1px 12px rgba(15,23,42,.06)}
+.logo{font-family:var(--display);font-size:1.35rem;font-weight:800;letter-spacing:1px;
+  color:var(--heading);text-decoration:none}
+.logo span{color:var(--accent)}
+nav ul{display:flex;gap:2rem;list-style:none}
+nav ul a{color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:500;transition:color .2s}
+nav ul a:hover{color:var(--accent)}
+.nav-cta{background:var(--accent)!important;color:#fff!important;
+  padding:.38rem 1.1rem;border-radius:6px;font-weight:700!important}
+
+/* SHARED */
+section{position:relative;z-index:1;padding:110px 5vw;max-width:1320px;margin:0 auto}
+.chip{display:inline-flex;align-items:center;
+  font-family:var(--mono);font-size:.68rem;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;
+  background:var(--accent-l);border:1px solid rgba(37,99,235,.18);
+  padding:.22rem .7rem;border-radius:4px;margin-bottom:1.2rem}
+h2.st{font-size:clamp(1.9rem,3.8vw,2.9rem);font-weight:900;color:var(--heading);
+  line-height:1.15;letter-spacing:-.025em;margin-bottom:1rem}
+p.sd{color:var(--muted);font-size:.97rem;max-width:540px;line-height:1.85}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .65s,transform .65s}
+.reveal.in{opacity:1;transform:none}
+hr.div{border:none;border-top:1px solid var(--border);margin:0 5vw;position:relative;z-index:1}
+
+/* ── HERO ── */
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding-top:90px;padding-bottom:60px;overflow:hidden;
+  background:linear-gradient(150deg,#fff 0%,#eff6ff 45%,#e0f2fe 100%)}
+.h-badge{font-family:var(--mono);font-size:.72rem;color:var(--accent);letter-spacing:.18em;
+  text-transform:uppercase;margin-bottom:1.4rem;opacity:0;animation:up .5s .15s forwards}
+h1{font-size:clamp(2.8rem,7vw,6rem);font-weight:900;color:var(--heading);
+  line-height:1.06;letter-spacing:-.035em;margin-bottom:1rem;
+  opacity:0;animation:up .65s .3s forwards}
+h1 em{font-style:normal;color:var(--accent);position:relative}
+h1 em::after{content:'';position:absolute;bottom:3px;left:0;right:0;height:4px;
+  background:var(--accent);opacity:.2;border-radius:2px}
+.h-sub{font-size:1.08rem;color:var(--muted);max-width:480px;line-height:1.85;margin-bottom:2.4rem;
+  opacity:0;animation:up .65s .45s forwards}
+.h-btns{display:flex;gap:1rem;flex-wrap:wrap;opacity:0;animation:up .65s .6s forwards}
+.btn-p{background:var(--accent);color:#fff;padding:.82rem 1.9rem;border:none;border-radius:8px;
+  font-family:var(--sans);font-size:.9rem;font-weight:700;cursor:pointer;text-decoration:none;
+  display:inline-block;box-shadow:0 4px 16px rgba(37,99,235,.28);
+  transition:background .2s,transform .15s,box-shadow .2s}
+.btn-p:hover{background:var(--accent-h);transform:translateY(-2px);box-shadow:0 8px 24px rgba(37,99,235,.36)}
+.btn-g{background:transparent;color:var(--heading);padding:.82rem 1.9rem;
+  border:1.5px solid var(--border2);border-radius:8px;font-family:var(--sans);
+  font-size:.9rem;font-weight:500;cursor:pointer;text-decoration:none;display:inline-block;
+  transition:border-color .2s,color .2s,transform .15s}
+.btn-g:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-2px)}
+.h-stats{margin-top:4.5rem;display:flex;gap:2.8rem;flex-wrap:wrap;
+  opacity:0;animation:up .65s .8s forwards}
+.hs{border-left:2.5px solid var(--accent);padding-left:1.1rem}
+.hs-n{font-family:var(--display);font-size:2rem;font-weight:800;color:var(--accent);
+  letter-spacing:-1px;line-height:1}
+.hs-l{font-family:var(--mono);font-size:.63rem;color:var(--muted);
+  letter-spacing:.07em;text-transform:uppercase;margin-top:.2rem}
+
+/* floating preview */
+.h-preview{position:absolute;right:-2vw;top:50%;transform:translateY(-44%);
+  width:53vw;max-width:720px;min-width:420px;border-radius:16px;overflow:hidden;
+  box-shadow:0 32px 80px rgba(15,23,42,.18),0 8px 24px rgba(37,99,235,.12);
+  border:1px solid rgba(255,255,255,.8);
+  opacity:0;animation:slideIn .8s .5s forwards}
+@keyframes slideIn{
+  from{opacity:0;transform:translateY(-40%) translateX(40px)}
+  to{opacity:1;transform:translateY(-44%) translateX(0)}}
+
+/* ── MINI DASHBOARD (hero) ── */
+.mdb{background:#f8fafc;font-family:var(--sans);font-size:11.5px;color:var(--text);user-select:none}
+.mdb-wrap{display:flex;height:480px}
+.mdb-side{width:136px;background:#fff;border-right:1px solid var(--border);flex-shrink:0}
+.mdb-logo{display:flex;align-items:center;gap:6px;padding:12px 13px 9px;border-bottom:1px solid var(--border)}
+.mdb-logo-box{width:20px;height:20px;background:var(--accent);border-radius:4px;
+  display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-weight:800}
+.mdb-logo-name{font-weight:800;font-size:10px;color:var(--heading)}
+.mdb-nav{padding:8px 7px;display:flex;flex-direction:column;gap:1px}
+.mdb-ni{display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:5px;
+  font-size:9.5px;color:var(--muted);cursor:pointer}
+.mdb-ni.on{background:var(--accent-l);color:var(--accent);font-weight:700}
+.mdb-dot{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5;flex-shrink:0}
+.mdb-main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+.mdb-bar{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 13px;background:#fff;border-bottom:1px solid var(--border)}
+.mdb-title{font-size:11.5px;font-weight:700;color:var(--heading)}
+.mdb-search{background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+  padding:3px 9px;font-size:9px;color:var(--muted);font-family:var(--mono)}
+.mdb-body{flex:1;overflow:hidden;padding:9px 11px;display:flex;flex-direction:column;gap:7px}
+
+.k-row{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.k{background:#fff;border-radius:7px;border:1px solid var(--border);padding:8px 8px 6px;position:relative}
+.k::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--accent);border-radius:2px 2px 0 0;opacity:.5}
+.kl{font-size:7px;color:var(--muted);margin-bottom:3px}
+.kv{font-size:13px;font-weight:900;color:var(--heading);line-height:1}
+.kd{font-size:7px;margin-top:2px;font-weight:700}
+.kd.up{color:var(--green)}.kd.dn{color:var(--red)}.kd.nu{color:var(--teal)}
+.ki{position:absolute;top:7px;right:7px;font-size:9px}
+
+.m-row{display:grid;grid-template-columns:1fr 245px;gap:7px;flex:1;min-height:0}
+.cp{background:#fff;border-radius:7px;border:1px solid var(--border);
+  padding:9px 10px;display:flex;flex-direction:column;overflow:hidden}
+.cp-t{font-size:9px;font-weight:700;color:var(--heading);margin-bottom:5px;flex-shrink:0}
+.cp svg{flex:1;width:100%;display:block}
+
+.ep{background:#fff;border-radius:7px;border:1px solid var(--border);
+  padding:9px 10px;overflow:hidden;display:flex;flex-direction:column}
+.ep-t{font-size:9px;font-weight:700;color:var(--heading);margin-bottom:5px;flex-shrink:0}
+.ei{display:grid;grid-template-columns:7px 1fr auto 38px auto;align-items:center;
+  gap:5px;padding:4px 0;border-bottom:1px solid var(--border)}
+.ei:last-child{border-bottom:none}
+.ed{width:6px;height:6px;border-radius:50%}
+.ed.r{background:var(--green)}.ed.w{background:var(--orange)}.ed.i{background:var(--border2)}
+.en{font-size:8.5px;font-weight:600;color:var(--heading)}
+.es2{font-size:7px;color:var(--muted)}
+.eoee{font-size:8.5px;font-weight:800;color:var(--accent)}
+.ebar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.ebar div{height:100%;background:var(--accent);border-radius:2px}
+.est{font-size:6.5px;font-weight:700;padding:1px 4px;border-radius:3px;white-space:nowrap}
+.est.r{background:#d1fae5;color:var(--green)}
+.est.w{background:#fef3c7;color:var(--orange)}
+.est.i{background:var(--border);color:var(--muted)}
+
+/* TICKER */
+.tick-wrap{position:relative;z-index:1;overflow:hidden;background:var(--accent);
+  padding:.55rem 0;white-space:nowrap}
+.tick-inner{display:inline-block;animation:tick 26s linear infinite}
+.tick-item{display:inline-block;margin:0 2.5rem;font-family:var(--mono);
+  font-size:.74rem;letter-spacing:.12em;color:#fff;font-weight:500}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ABOUT */
+#about .ag{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center;margin-top:3.5rem}
+.ab p{color:var(--text);font-size:.97rem;line-height:1.95;margin-bottom:1.15rem}
+.ab p strong{color:var(--heading);font-weight:700}
+.ab-cells{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ac{background:var(--surface);padding:1.7rem 1.4rem;border-radius:12px;
+  border:1px solid var(--border);box-shadow:0 2px 10px rgba(15,23,42,.04);
+  transition:transform .2s,box-shadow .2s}
+.ac:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(15,23,42,.09)}
+.ac-ic{font-size:1.5rem;margin-bottom:.6rem}
+.ac-nm{font-size:.83rem;font-weight:700;color:var(--heading);margin-bottom:.3rem}
+.ac-dc{font-family:var(--mono);font-size:.65rem;color:var(--muted);line-height:1.65}
+
+/* SERVICES */
+.sg{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:3.5rem}
+.sc{background:var(--surface);padding:2.5rem 2.2rem;border-radius:14px;
+  border:1px solid var(--border);box-shadow:0 2px 14px rgba(15,23,42,.04);
+  display:flex;flex-direction:column;gap:1.1rem;
+  transition:transform .25s,box-shadow .25s;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--teal));
+  transform:scaleX(0);transform-origin:left;transition:transform .3s}
+.sc:hover{transform:translateY(-5px);box-shadow:0 16px 40px rgba(37,99,235,.11)}
+.sc:hover::before{transform:scaleX(1)}
+.sc-num{font-family:var(--display);font-size:2.6rem;font-weight:800;
+  color:var(--border);line-height:1;transition:color .25s}
+.sc:hover .sc-num{color:rgba(37,99,235,.13)}
+.sc-ttl{font-size:1.1rem;font-weight:700;color:var(--heading)}
+.sc-dsc{font-size:.86rem;color:var(--muted);line-height:1.75}
+.sc-fx h4{font-family:var(--mono);font-size:.62rem;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:.55rem}
+.sc-fx li{font-size:.81rem;color:var(--text);display:flex;align-items:flex-start;
+  gap:.45rem;margin-bottom:.3rem;list-style:none}
+.sc-fx li::before{content:'▸';color:var(--accent);font-size:.65rem;margin-top:.25rem;flex-shrink:0}
+.sc-tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:auto;
+  padding-top:1rem;border-top:1px solid var(--border)}
+.sc-tag{font-family:var(--mono);font-size:.62rem;color:var(--accent);
+  border:1px solid rgba(37,99,235,.2);background:var(--accent-l);
+  padding:.18rem .5rem;border-radius:4px}
+
+/* PRODUCT SHOWCASE */
+#product{background:none}
+.pw{display:grid;grid-template-columns:1fr 1.4fr;gap:5rem;align-items:center;margin-top:3.5rem}
+.pw-info h3{font-size:1.75rem;font-weight:900;color:var(--heading);
+  line-height:1.2;margin-bottom:1rem;letter-spacing:-.02em}
+.pw-info h3 span{color:var(--accent)}
+.pw-info > p{font-size:.95rem;color:var(--muted);line-height:1.85;margin-bottom:1.8rem}
+.pw-feats{display:flex;flex-direction:column;gap:.65rem;margin-bottom:2rem}
+.pf{display:flex;align-items:flex-start;gap:.75rem}
+.pf-ic{width:22px;height:22px;background:var(--accent-l);border:1px solid rgba(37,99,235,.2);
+  border-radius:5px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:.1rem;font-size:.8rem}
+.pf-tx{font-size:.87rem;color:var(--text);line-height:1.65}
+.pf-tx strong{color:var(--heading);font-weight:600}
+
+/* dashboard frame */
+.dbf{border-radius:16px;overflow:hidden;
+  box-shadow:0 24px 60px rgba(15,23,42,.15),0 6px 20px rgba(37,99,235,.1);
+  border:1px solid rgba(255,255,255,.9)}
+.dbf-bar{background:#fff;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:6px;padding:8px 14px}
+.dbf-dot{width:9px;height:9px;border-radius:50%}
+.dbf-url{flex:1;background:var(--surface2);border-radius:5px;height:20px;
+  margin:0 10px;display:flex;align-items:center;padding:0 10px;
+  font-family:var(--mono);font-size:9px;color:var(--muted)}
+
+/* large dashboard */
+.ldb{font-family:var(--sans);font-size:11.5px;color:var(--text);background:var(--bg)}
+.ldb-wrap{display:flex;height:480px}
+.ldb-side{width:136px;background:#fff;border-right:1px solid var(--border);
+  flex-shrink:0;display:flex;flex-direction:column}
+.ldb-logo{display:flex;align-items:center;gap:6px;padding:12px 13px 9px;
+  border-bottom:1px solid var(--border)}
+.ldb-logo-box{width:20px;height:20px;background:var(--accent);border-radius:4px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:#fff;font-weight:800}
+.ldb-logo-nm{font-weight:800;font-size:10px;color:var(--heading)}
+.ldb-menu{padding:8px 7px;display:flex;flex-direction:column;gap:1px}
+.ldb-mi{display:flex;align-items:center;gap:6px;padding:5px 7px;border-radius:5px;
+  font-size:9.5px;color:var(--muted);cursor:pointer}
+.ldb-mi.on{background:var(--accent-l);color:var(--accent);font-weight:700}
+.ldb-mi .ic{width:5px;height:5px;border-radius:50%;background:currentColor;opacity:.5;flex-shrink:0}
+.ldb-main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.ldb-bar{display:flex;align-items:center;justify-content:space-between;
+  padding:8px 13px;background:#fff;border-bottom:1px solid var(--border)}
+.ldb-bar-t{font-size:12px;font-weight:700;color:var(--heading)}
+.ldb-srch{background:var(--surface2);border:1px solid var(--border);border-radius:5px;
+  padding:3px 9px;font-size:9px;color:var(--muted);font-family:var(--mono)}
+.ldb-body{flex:1;overflow:auto;padding:9px 11px;display:flex;flex-direction:column;gap:7px}
+
+.lk-row{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.lk{background:#fff;border-radius:7px;border:1px solid var(--border);
+  padding:9px 9px 7px;position:relative;overflow:hidden}
+.lk::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent),var(--teal))}
+.lkl{font-size:7px;color:var(--muted);margin-bottom:3px}
+.lkv{font-size:13px;font-weight:900;color:var(--heading);line-height:1}
+.lkd{font-size:7px;margin-top:3px;font-weight:700}
+.lkd.up{color:var(--green)}.lkd.dn{color:var(--red)}.lkd.nu{color:var(--teal)}
+.lki{position:absolute;top:7px;right:7px;font-size:10px}
+
+.lm-row{display:grid;grid-template-columns:1fr 250px;gap:7px;flex:1;min-height:0}
+.lcp{background:#fff;border-radius:7px;border:1px solid var(--border);
+  padding:9px 10px;display:flex;flex-direction:column;overflow:hidden}
+.lcp-t{font-size:9px;font-weight:700;color:var(--heading);margin-bottom:5px;flex-shrink:0}
+.lcp svg{flex:1;width:100%;display:block}
+
+.lep{background:#fff;border-radius:7px;border:1px solid var(--border);
+  padding:9px 10px;overflow:hidden;display:flex;flex-direction:column}
+.lep-t{font-size:9px;font-weight:700;color:var(--heading);margin-bottom:5px;flex-shrink:0}
+.lei{display:grid;grid-template-columns:7px 1fr auto 36px auto;align-items:center;
+  gap:5px;padding:4px 0;border-bottom:1px solid var(--border)}
+.lei:last-child{border-bottom:none}
+.led{width:6px;height:6px;border-radius:50%}
+.led.r{background:var(--green)}.led.w{background:var(--orange)}.led.i{background:var(--border2)}
+.len{font-size:8.5px;font-weight:600;color:var(--heading)}
+.les{font-size:7px;color:var(--muted)}
+.leo{font-size:8.5px;font-weight:800;color:var(--accent)}
+.leb{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.leb div{height:100%;background:var(--accent);border-radius:2px}
+.letag{font-size:6.5px;font-weight:700;padding:1px 4px;border-radius:3px;white-space:nowrap}
+.letag.r{background:#d1fae5;color:var(--green)}
+.letag.w{background:#fef3c7;color:var(--orange)}
+.letag.i{background:var(--border);color:var(--muted)}
+
+/* SOLUTION */
+.sol-g{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:3.5rem}
+.sol-c{background:var(--surface);padding:2.5rem;border-radius:14px;
+  border:1px solid var(--border);box-shadow:0 2px 14px rgba(15,23,42,.04);
+  display:flex;flex-direction:column;gap:1.1rem;transition:transform .2s,box-shadow .2s}
+.sol-c:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(37,99,235,.1)}
+.sol-ic{width:48px;height:48px;border-radius:11px;background:var(--accent-l);
+  border:1px solid rgba(37,99,235,.15);display:flex;align-items:center;
+  justify-content:center;font-size:1.3rem}
+.sol-c h3{font-size:1.1rem;font-weight:700;color:var(--heading)}
+.sol-c p{font-size:.86rem;color:var(--muted);line-height:1.8}
+.sol-fl{list-style:none;display:flex;flex-direction:column;gap:.38rem;
+  padding-top:.9rem;border-top:1px solid var(--border)}
+.sol-fl li{font-family:var(--mono);font-size:.68rem;color:var(--text);
+  display:flex;gap:.55rem;align-items:flex-start}
+.sol-fl li span{color:var(--accent)}
+
+/* REFERENCES */
+.ref-g{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:3.5rem}
+.ref-c{background:var(--surface);padding:2.4rem;border-radius:14px;
+  border:1px solid var(--border);box-shadow:0 2px 14px rgba(15,23,42,.04);
+  position:relative;overflow:hidden;transition:transform .2s,box-shadow .2s}
+.ref-c:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(37,99,235,.1)}
+.ref-c::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent),var(--teal))}
+.ref-c h3{font-size:.98rem;font-weight:700;color:var(--heading);margin-bottom:.9rem}
+.ref-c ul{list-style:none;display:flex;flex-direction:column;gap:.45rem}
+.ref-c li{font-size:.83rem;color:var(--muted);display:flex;gap:.55rem;align-items:flex-start}
+.ref-c li::before{content:'—';color:var(--accent);flex-shrink:0}
+.ref-badge{position:absolute;top:1.4rem;right:1.4rem;font-family:var(--mono);
+  font-size:.62rem;color:var(--accent);border:1px solid rgba(37,99,235,.2);
+  background:var(--accent-l);padding:.18rem .55rem;border-radius:4px;letter-spacing:.07em}
+
+/* CONTACT */
+#contact .cw{display:grid;grid-template-columns:1fr 1fr;gap:5.5rem;align-items:start;margin-top:3.5rem}
+.ci h3{font-size:1.45rem;font-weight:700;color:var(--heading);margin-bottom:.9rem}
+.ci > p{color:var(--muted);font-size:.88rem;line-height:1.85}
+.ci-det{display:flex;flex-direction:column;gap:.75rem;margin-top:1.8rem}
+.cdr{display:flex;align-items:flex-start;gap:.9rem;font-size:.84rem}
+.cdl{font-family:var(--mono);font-size:.62rem;color:var(--accent);letter-spacing:.07em;
+  text-transform:uppercase;background:var(--accent-l);padding:.15rem .4rem;
+  border-radius:3px;width:54px;text-align:center;flex-shrink:0;margin-top:.18rem}
+.cdv{color:var(--text)}
+.cf{display:flex;flex-direction:column;gap:.9rem;background:var(--surface);
+  padding:2.4rem;border-radius:18px;border:1px solid var(--border);
+  box-shadow:0 4px 24px rgba(15,23,42,.07)}
+.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.fg{display:flex;flex-direction:column;gap:.38rem}
+.fg label{font-family:var(--mono);font-size:.62rem;color:var(--muted);
+  letter-spacing:.06em;text-transform:uppercase;font-weight:500}
+.fg input,.fg textarea{background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:8px;padding:.72rem .95rem;color:var(--heading);
+  font-family:var(--sans);font-size:.86rem;outline:none;
+  transition:border-color .2s,box-shadow .2s;resize:none}
+.fg input:focus,.fg textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.fg input::placeholder,.fg textarea::placeholder{color:var(--muted);opacity:.55}
+.fg textarea{min-height:112px}
+.cf-sub{display:flex;justify-content:flex-end;margin-top:.3rem}
+.cf-sub button{background:var(--accent);color:#fff;border:none;padding:.88rem 2.4rem;
+  font-family:var(--sans);font-size:.88rem;font-weight:700;letter-spacing:.02em;
+  cursor:pointer;border-radius:8px;box-shadow:0 4px 16px rgba(37,99,235,.28);
+  transition:background .2s,transform .15s,box-shadow .2s}
+.cf-sub button:hover{background:var(--accent-h);transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(37,99,235,.35)}
+
+/* FOOTER */
+footer{position:relative;z-index:1;background:var(--surface);border-top:1px solid var(--border);
+  padding:2.8rem 5vw;display:flex;align-items:center;
+  justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.fl{font-family:var(--display);font-size:1.25rem;font-weight:800;letter-spacing:1px;color:var(--heading)}
+.fl span{color:var(--accent)}
+.fi{font-family:var(--mono);font-size:.62rem;color:var(--muted);letter-spacing:.04em;line-height:1.85;text-align:right}
+
+@keyframes up{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+
+/* Hamburger button */
+.ham{display:none;flex-direction:column;justify-content:center;gap:5px;
+  width:36px;height:36px;background:none;border:none;cursor:pointer;padding:4px;
+  border-radius:6px;transition:background .2s;z-index:300}
+.ham:hover{background:var(--accent-l)}
+.ham span{display:block;width:22px;height:2px;background:var(--heading);
+  border-radius:2px;transition:transform .3s,opacity .3s,width .3s}
+.ham.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.ham.open span:nth-child(2){opacity:0;width:0}
+.ham.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* Mobile drawer */
+.mob-menu{
+  position:fixed;top:62px;left:0;right:0;bottom:0;z-index:190;
+  background:rgba(255,255,255,.98);backdrop-filter:blur(20px);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2rem;list-style:none;
+  opacity:0;pointer-events:none;transform:translateY(-12px);
+  transition:opacity .3s,transform .3s}
+.mob-menu.open{opacity:1;pointer-events:all;transform:translateY(0)}
+.mob-menu a{font-size:1.5rem;font-weight:700;color:var(--heading);text-decoration:none;
+  transition:color .2s;letter-spacing:-.01em}
+.mob-menu a:hover{color:var(--accent)}
+.mob-menu .mob-cta{background:var(--accent);color:#fff!important;
+  padding:.7rem 2rem;border-radius:8px;font-size:1.1rem!important;
+  box-shadow:0 4px 16px rgba(37,99,235,.28)}
+
+@media(max-width:980px){
+  nav ul{display:none}
+  .ham{display:flex}
+  .h-preview{display:none}
+  #about .ag,.pw,.lm-row,.sol-g,.ref-g,#contact .cw,.sg{grid-template-columns:1fr}
+  .lk-row{grid-template-columns:repeat(3,1fr)}
+  .k-row{grid-template-columns:repeat(3,1fr)}
+  .cf-row{grid-template-columns:1fr}
+  .fi{text-align:left}
+}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">PAX<span>C</span></a>
+  <ul>
+    <li><a href="#about">회사소개</a></li>
+    <li><a href="#services">사업영역</a></li>
+    <li><a href="#product">솔루션</a></li>
+    <li><a href="#references">레퍼런스</a></li>
+    <li><a href="#contact" class="nav-cta">문의하기</a></li>
+  </ul>
+  <button class="ham" id="ham-btn" aria-label="메뉴 열기">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE DRAWER -->
+<ul class="mob-menu" id="mob-menu">
+  <li><a href="#about">회사소개</a></li>
+  <li><a href="#services">사업영역</a></li>
+  <li><a href="#product">솔루션</a></li>
+  <li><a href="#references">레퍼런스</a></li>
+  <li><a href="#contact" class="mob-cta">문의하기</a></li>
+</ul>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="h-badge">// 스마트 제조 솔루션 전문기업 · PAXC</div>
+  <h1>제조 현장을<br><em>데이터로</em> 바꾸다</h1>
+  <p class="h-sub">자동화 · 데이터 수집 · SaaS까지<br>중소 제조기업의 디지털 전환을 함께합니다</p>
+  <div class="h-btns">
+    <a href="#contact" class="btn-p">상담 문의하기</a>
+    <a href="#product" class="btn-g">솔루션 보기</a>
+  </div>
+  <div class="h-stats">
+    <div class="hs"><div class="hs-n">3+</div><div class="hs-l">사업 영역</div></div>
+    <div class="hs"><div class="hs-n">100%</div><div class="hs-l">현장 중심 설계</div></div>
+    <div class="hs"><div class="hs-n">SaaS</div><div class="hs-l">클라우드 서비스</div></div>
+  </div>
+
+  <!-- floating dashboard preview -->
+  <div class="h-preview">
+    <div class="mdb">
+      <div class="mdb-wrap">
+        <div class="mdb-side">
+          <div class="mdb-logo">
+            <div class="mdb-logo-box">F</div>
+            <span class="mdb-logo-name">Foodly MES</span>
+          </div>
+          <div class="mdb-nav">
+            <div class="mdb-ni on"><span class="mdb-dot"></span>대시보드</div>
+            <div class="mdb-ni"><span class="mdb-dot"></span>설비 모니터링</div>
+            <div class="mdb-ni"><span class="mdb-dot"></span>품질 관리</div>
+            <div class="mdb-ni"><span class="mdb-dot"></span>작업지시</div>
+            <div class="mdb-ni"><span class="mdb-dot"></span>원료수불대장</div>
+            <div class="mdb-ni"><span class="mdb-dot"></span>재고/자재 관리</div>
+            <div class="mdb-ni"><span class="mdb-dot"></span>알람 관리</div>
+          </div>
+        </div>
+        <div class="mdb-main">
+          <div class="mdb-bar">
+            <span class="mdb-title">메인 대시보드</span>
+            <span class="mdb-search">🔍 검색...</span>
+          </div>
+          <div class="mdb-body">
+            <div class="k-row">
+              <div class="k"><div class="ki">↗</div><div class="kl">금일 생산량</div><div class="kv">482<span style="font-size:7px;color:var(--muted)"> EA</span></div><div class="kd up">전일 +8.2%</div></div>
+              <div class="k"><div class="ki">⚡</div><div class="kl">평균 가동률</div><div class="kv">91<span style="font-size:8px">%</span></div><div class="kd up">전일 +2.1%</div></div>
+              <div class="k"><div class="ki">⚠</div><div class="kl">불량률</div><div class="kv">0.7<span style="font-size:8px">%</span></div><div class="kd dn">전일 -0.3%</div></div>
+              <div class="k"><div class="ki">✓</div><div class="kl">작업지시 완료</div><div class="kv" style="font-size:11px">18<span style="font-size:8px;color:var(--muted)">/22건</span></div><div class="kd nu">81.8%</div></div>
+              <div class="k"><div class="ki">⏱</div><div class="kl">사이클타임</div><div class="kv">4.2<span style="font-size:8px">s</span></div><div class="kd up" style="color:var(--green)">-0.5s</div></div>
+              <div class="k"><div class="ki">🔧</div><div class="kl">가동 설비</div><div class="kv">5<span style="font-size:8px;color:var(--muted)">/6대</span></div><div class="kd nu">정상운영</div></div>
+            </div>
+            <div class="m-row">
+              <div class="cp">
+                <div class="cp-t">시간별 생산량 추이</div>
+                <svg viewBox="0 0 260 95" preserveAspectRatio="none">
+                  <defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#2563eb" stop-opacity=".14"/>
+                    <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+                  </linearGradient></defs>
+                  <line x1="0" y1="20" x2="260" y2="20" stroke="#e2e8f0" stroke-width=".5"/>
+                  <line x1="0" y1="45" x2="260" y2="45" stroke="#e2e8f0" stroke-width=".5"/>
+                  <line x1="0" y1="70" x2="260" y2="70" stroke="#e2e8f0" stroke-width=".5"/>
+                  <path d="M0,65 C18,55 36,32 62,27 C88,22 108,25 132,31 C156,37 166,62 192,46 C218,30 232,22 260,18 L260,90 L0,90Z" fill="url(#hg)"/>
+                  <path d="M0,65 C18,55 36,32 62,27 C88,22 108,25 132,31 C156,37 166,62 192,46 C218,30 232,22 260,18" fill="none" stroke="#2563eb" stroke-width="1.8"/>
+                  <text x="1" y="89" font-size="5.5" fill="#94a3b8">00:00</text>
+                  <text x="44" y="89" font-size="5.5" fill="#94a3b8">02:00</text>
+                  <text x="88" y="89" font-size="5.5" fill="#94a3b8">04:00</text>
+                  <text x="132" y="89" font-size="5.5" fill="#94a3b8">06:00</text>
+                  <text x="176" y="89" font-size="5.5" fill="#94a3b8">08:00</text>
+                  <text x="218" y="89" font-size="5.5" fill="#94a3b8">09:00</text>
+                </svg>
+              </div>
+              <div class="ep">
+                <div class="ep-t">설비 현황</div>
+                <div class="ei"><div class="ed r"></div><div><div class="en">A라인 · 성형기</div><div class="es2">식빵(대)</div></div><div class="eoee">92.5%</div><div class="ebar"><div style="width:78%"></div></div><div class="est r">가동중</div></div>
+                <div class="ei"><div class="ed r"></div><div><div class="en">B라인 · 포장기</div><div class="es2">크로와상</div></div><div class="eoee">88.1%</div><div class="ebar"><div style="width:62%"></div></div><div class="est r">가동중</div></div>
+                <div class="ei"><div class="ed w"></div><div><div class="en">C라인 · 오븐</div><div class="es2">정비 중</div></div><div class="eoee" style="color:var(--orange)">—</div><div class="ebar"><div style="width:0"></div></div><div class="est w">정비</div></div>
+                <div class="ei"><div class="ed r"></div><div><div class="en">D라인 · 믹서</div><div class="es2">케이크 시트</div></div><div class="eoee">95.2%</div><div class="ebar"><div style="width:45%"></div></div><div class="est r">가동중</div></div>
+                <div class="ei"><div class="ed i"></div><div><div class="en">E라인 · 냉각기</div><div class="es2">대기</div></div><div class="eoee" style="color:var(--muted)">—</div><div class="ebar"><div style="width:0;background:var(--muted)"></div></div><div class="est i">대기</div></div>
+                <div class="ei"><div class="ed r"></div><div><div class="en">F라인 · 절단기</div><div class="es2">식빵(소)</div></div><div class="eoee">91%</div><div class="ebar"><div style="width:88%"></div></div><div class="est r">가동중</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="tick-wrap">
+  <div class="tick-inner">
+    <span class="tick-item">스마트 제조</span><span class="tick-item">·</span>
+    <span class="tick-item">실시간 모니터링</span><span class="tick-item">·</span>
+    <span class="tick-item">Foodly MES</span><span class="tick-item">·</span>
+    <span class="tick-item">데이터 수집</span><span class="tick-item">·</span>
+    <span class="tick-item">SaaS 솔루션</span><span class="tick-item">·</span>
+    <span class="tick-item">MES / POP 시스템</span><span class="tick-item">·</span>
+    <span class="tick-item">디지털 전환</span><span class="tick-item">·</span>
+    <span class="tick-item">설비 가동률</span><span class="tick-item">·</span>
+    <span class="tick-item">스마트 제조</span><span class="tick-item">·</span>
+    <span class="tick-item">실시간 모니터링</span><span class="tick-item">·</span>
+    <span class="tick-item">Foodly MES</span><span class="tick-item">·</span>
+    <span class="tick-item">데이터 수집</span><span class="tick-item">·</span>
+    <span class="tick-item">SaaS 솔루션</span><span class="tick-item">·</span>
+    <span class="tick-item">MES / POP 시스템</span><span class="tick-item">·</span>
+    <span class="tick-item">디지털 전환</span><span class="tick-item">·</span>
+    <span class="tick-item">설비 가동률</span><span class="tick-item">·</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="chip reveal">Company</div>
+  <h2 class="st reveal">우리는 제조 현장의<br>비효율을 데이터로 해결합니다</h2>
+  <div class="ag">
+    <div class="ab reveal">
+      <p>현장의 경험 없이 만들어진 시스템은 <strong>실제로 사용되지 않습니다.</strong> 우리는 제조 현장을 이해하는 것에서 시작합니다.</p>
+      <p>자동화 장비에서 발생하는 데이터를 수집하고, 누구나 이해할 수 있는 정보로 바꾸며, 실제 운영에 도움이 되는 시스템을 제공합니다.</p>
+      <p>단순한 구축이 아닌, 고객의 <strong>생산성과 효율을 함께 고민하는 파트너</strong>가 되겠습니다.</p>
+    </div>
+    <div class="ab-cells reveal">
+      <div class="ac"><div class="ac-ic">🏭</div><div class="ac-nm">현장 이해 기반</div><div class="ac-dc">제조 프로세스를<br>직접 이해하고 설계</div></div>
+      <div class="ac"><div class="ac-ic">📡</div><div class="ac-nm">실시간 데이터</div><div class="ac-dc">장비에서 대시보드까지<br>끊김 없는 흐름</div></div>
+      <div class="ac"><div class="ac-ic">☁️</div><div class="ac-nm">클라우드 SaaS</div><div class="ac-dc">언제 어디서나<br>접근 가능한 시스템</div></div>
+      <div class="ac"><div class="ac-ic">🤝</div><div class="ac-nm">파트너십</div><div class="ac-dc">구축 후 유지보수까지<br>함께하는 파트너</div></div>
+    </div>
+  </div>
+</section>
+<hr class="div">
+
+<!-- SERVICES -->
+<section id="services">
+  <div class="chip reveal">Business</div>
+  <h2 class="st reveal">사업 영역</h2>
+  <p class="sd reveal">스마트 제조부터 식품 제조 SaaS, 맞춤형 시스템 개발까지 현장에 바로 적용 가능한 솔루션을 제공합니다</p>
+  <div class="sg">
+    <div class="sc reveal">
+      <div class="sc-num">01</div>
+      <div class="sc-ttl">스마트 제조 솔루션</div>
+      <div class="sc-dsc">제조 데이터를 실시간으로 수집하고 관리합니다. 스마트 제조 지원사업 공급기업으로서 자동화 장비 모니터링부터 설비 가동률 관리까지 제공합니다.</div>
+      <div class="sc-fx"><h4>기대 효과</h4><ul>
+        <li>생산 현황 실시간 파악</li><li>설비 비가동 시간 감소</li><li>데이터 기반 의사결정</li>
+      </ul></div>
+      <div class="sc-tags"><span class="sc-tag">실시간 수집</span><span class="sc-tag">시각화</span><span class="sc-tag">모니터링</span></div>
+    </div>
+    <a href="https://www.foodly.co.kr/" target="_blank" rel="noopener" class="sc reveal" style="text-decoration:none;color:inherit;">
+      <div class="sc-num">02</div>
+      <div class="sc-ttl">Foodly (푸들리) <span style="font-size:.7rem;color:var(--accent);font-family:var(--mono);font-weight:500;margin-left:.4rem;">↗ 바로가기</span></div>
+      <div class="sc-dsc">소규모 식품 제조를 위한 올인원 관리 서비스. 생산 / 재고 / 위생 관리를 통합하고 클라우드 기반으로 언제 어디서나 사용 가능합니다.</div>
+      <div class="sc-fx"><h4>이런 분들에게 필요합니다</h4><ul>
+        <li>엑셀 관리가 어려운 식품 제조업체</li><li>HACCP 위생관리 체계가 필요한 사업장</li><li>소규모지만 체계적 운영이 필요한 기업</li>
+      </ul></div>
+      <div class="sc-tags"><span class="sc-tag">HACCP</span><span class="sc-tag">재고관리</span><span class="sc-tag">클라우드</span></div>
+    </a>
+    <div class="sc reveal">
+      <div class="sc-num">03</div>
+      <div class="sc-ttl">맞춤형 시스템 개발</div>
+      <div class="sc-dsc">제조업에 최적화된 시스템을 설계합니다. MES / POP 시스템부터 웹·앱 기반 관리 시스템, SaaS 서비스 개발까지 지원합니다.</div>
+      <div class="sc-fx"><h4>특징</h4><ul>
+        <li>제조 현장 이해 기반 설계</li><li>실사용 중심 개발</li><li>유지보수까지 고려한 구조</li>
+      </ul></div>
+      <div class="sc-tags"><span class="sc-tag">MES</span><span class="sc-tag">POP</span><span class="sc-tag">웹/앱</span><span class="sc-tag">SaaS</span></div>
+    </div>
+  </div>
+</section>
+<hr class="div">
+
+<!-- PRODUCT SHOWCASE -->
+<section id="product">
+  <div class="chip reveal">Product · Foodly MES</div>
+  <h2 class="st reveal">실제 운영 중인 대시보드를<br>직접 확인하세요</h2>
+  <div class="pw">
+    <div class="pw-info reveal">
+      <h3>Foodly <span>MES</span><br>메인 대시보드</h3>
+      <p>생산 현황, 설비 가동률, 불량률, 재고까지 — 제조 현장의 모든 데이터를 하나의 화면에서 실시간으로 확인합니다.</p>
+      <div class="pw-feats">
+        <div class="pf"><div class="pf-ic">📊</div><div class="pf-tx"><strong>실시간 KPI 모니터링</strong> — 금일 생산량, 평균 가동률(OEE), 불량률, 사이클타임</div></div>
+        <div class="pf"><div class="pf-ic">🔧</div><div class="pf-tx"><strong>설비 현황 한눈에</strong> — 라인별 가동/정비/대기 상태 및 OEE 실시간 표시</div></div>
+        <div class="pf"><div class="pf-ic">📈</div><div class="pf-tx"><strong>시간별 생산 추이</strong> — 라인별 차트로 생산 흐름 시각화</div></div>
+        <div class="pf"><div class="pf-ic">🥐</div><div class="pf-tx"><strong>제품별 생산 비율</strong> — 도넛 차트로 품목별 비율 직관적 파악</div></div>
+        <div class="pf"><div class="pf-ic">⚠️</div><div class="pf-tx"><strong>불량률 추이 알림</strong> — 기준선 초과 시 즉각 이상 감지 및 알림</div></div>
+      </div>
+      <a href="#contact" class="btn-p">Foodly 도입 문의</a>
+    </div>
+    <div class="reveal">
+      <div class="dbf">
+        <div class="dbf-bar">
+          <div class="dbf-dot" style="background:#fc5c57"></div>
+          <div class="dbf-dot" style="background:#fdbc2c"></div>
+          <div class="dbf-dot" style="background:#33c748"></div>
+          <div class="dbf-url">app.foodly.co.kr/dashboard</div>
+        </div>
+        <div class="ldb">
+          <div class="ldb-wrap">
+            <div class="ldb-side">
+              <div class="ldb-logo">
+                <div class="ldb-logo-box">F</div>
+                <span class="ldb-logo-nm">Foodly MES</span>
+              </div>
+              <div class="ldb-menu">
+                <div class="ldb-mi on"><span class="ic"></span>대시보드</div>
+                <div class="ldb-mi"><span class="ic"></span>설비 모니터링</div>
+                <div class="ldb-mi"><span class="ic"></span>품질 관리</div>
+                <div class="ldb-mi"><span class="ic"></span>작업지시</div>
+                <div class="ldb-mi"><span class="ic"></span>원료수불대장</div>
+                <div class="ldb-mi"><span class="ic"></span>재고/자재 관리</div>
+                <div class="ldb-mi"><span class="ic"></span>알람 관리</div>
+              </div>
+            </div>
+            <div class="ldb-main">
+              <div class="ldb-bar">
+                <span class="ldb-bar-t">메인 대시보드</span>
+                <span class="ldb-srch">🔍 검색...</span>
+              </div>
+              <div class="ldb-body">
+                <div class="lk-row">
+                  <div class="lk"><div class="lki">↗</div><div class="lkl">금일 생산량</div><div class="lkv">482<span style="font-size:7px;color:var(--muted)"> EA</span></div><div class="lkd up">전일 대비 +8.2%</div></div>
+                  <div class="lk"><div class="lki">⚡</div><div class="lkl">평균 가동률(OEE)</div><div class="lkv">91<span style="font-size:8px">%</span></div><div class="lkd up">전일 대비 +2.1%</div></div>
+                  <div class="lk"><div class="lki">⚠</div><div class="lkl">불량률</div><div class="lkv">0.7<span style="font-size:8px">%</span></div><div class="lkd dn">전일 대비 -0.3%</div></div>
+                  <div class="lk"><div class="lki">✓</div><div class="lkl">작업지시 완료</div><div class="lkv" style="font-size:11px">18<span style="font-size:8px;color:var(--muted)">/22건</span></div><div class="lkd nu">81.8%</div></div>
+                  <div class="lk"><div class="lki">⏱</div><div class="lkl">평균 사이클타임</div><div class="lkv">4.2<span style="font-size:8px">초</span></div><div class="lkd up" style="color:var(--green)">전일 대비 -0.5s</div></div>
+                  <div class="lk"><div class="lki">🔧</div><div class="lkl">가동 설비</div><div class="lkv">5<span style="font-size:8px;color:var(--muted)">/6대</span></div><div class="lkd nu">정상 운영 중</div></div>
+                </div>
+                <div class="lm-row">
+                  <div class="lcp">
+                    <div class="lcp-t">시간별 생산량 추이</div>
+                    <svg viewBox="0 0 280 100" preserveAspectRatio="none">
+                      <defs><linearGradient id="lg3" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#2563eb" stop-opacity=".14"/>
+                        <stop offset="100%" stop-color="#2563eb" stop-opacity="0"/>
+                      </linearGradient></defs>
+                      <line x1="0" y1="22" x2="280" y2="22" stroke="#e2e8f0" stroke-width=".5"/>
+                      <line x1="0" y1="48" x2="280" y2="48" stroke="#e2e8f0" stroke-width=".5"/>
+                      <line x1="0" y1="74" x2="280" y2="74" stroke="#e2e8f0" stroke-width=".5"/>
+                      <path d="M0,70 C20,60 38,34 66,29 C94,24 116,27 140,33 C164,39 174,67 202,50 C228,34 248,24 280,20 L280,96 L0,96Z" fill="url(#lg3)"/>
+                      <path d="M0,70 C20,60 38,34 66,29 C94,24 116,27 140,33 C164,39 174,67 202,50 C228,34 248,24 280,20" fill="none" stroke="#2563eb" stroke-width="1.8"/>
+                      <text x="1" y="95" font-size="5.5" fill="#94a3b8">00:00</text>
+                      <text x="48" y="95" font-size="5.5" fill="#94a3b8">02:00</text>
+                      <text x="96" y="95" font-size="5.5" fill="#94a3b8">04:00</text>
+                      <text x="144" y="95" font-size="5.5" fill="#94a3b8">06:00</text>
+                      <text x="192" y="95" font-size="5.5" fill="#94a3b8">08:00</text>
+                      <text x="236" y="95" font-size="5.5" fill="#94a3b8">09:00</text>
+                    </svg>
+                  </div>
+                  <div class="lep">
+                    <div class="lep-t">설비 현황</div>
+                    <div class="lei"><div class="led r"></div><div><div class="len">A라인 · 성형기</div><div class="les">식빵(대)</div></div><div class="leo">92.5%</div><div class="leb"><div style="width:78%"></div></div><div class="letag r">가동중</div></div>
+                    <div class="lei"><div class="led r"></div><div><div class="len">B라인 · 포장기</div><div class="les">크로와상</div></div><div class="leo">88.1%</div><div class="leb"><div style="width:62%"></div></div><div class="letag r">가동중</div></div>
+                    <div class="lei"><div class="led w"></div><div><div class="len">C라인 · 오븐</div><div class="les">정비 중</div></div><div class="leo" style="color:var(--orange)">—</div><div class="leb"><div style="width:0"></div></div><div class="letag w">정비</div></div>
+                    <div class="lei"><div class="led r"></div><div><div class="len">D라인 · 믹서</div><div class="les">케이크 시트</div></div><div class="leo">95.2%</div><div class="leb"><div style="width:45%"></div></div><div class="letag r">가동중</div></div>
+                    <div class="lei"><div class="led i"></div><div><div class="len">E라인 · 냉각기</div><div class="les">대기</div></div><div class="leo" style="color:var(--muted)">—</div><div class="leb"><div style="width:0;background:var(--muted)"></div></div><div class="letag i">대기</div></div>
+                    <div class="lei"><div class="led r"></div><div><div class="len">F라인 · 절단기</div><div class="les">식빵(소)</div></div><div class="leo">91%</div><div class="leb"><div style="width:88%"></div></div><div class="letag r">가동중</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<hr class="div">
+
+<!-- SOLUTION -->
+<section id="solution">
+  <div class="chip reveal">Solution</div>
+  <h2 class="st reveal">솔루션 소개</h2>
+  <p class="sd reveal">현장의 모든 데이터를 하나의 시스템으로 연결합니다</p>
+  <div class="sol-g">
+    <div class="sol-c reveal">
+      <div class="sol-ic">📊</div>
+      <h3>장비 모니터링 시스템</h3>
+      <p>현장의 모든 장비를 한눈에 확인합니다. 이상 상황을 즉각 감지하고 생산 흐름을 실시간으로 파악할 수 있습니다.</p>
+      <ul class="sol-fl">
+        <li><span>▸</span> 실시간 가동 상태 확인</li>
+        <li><span>▸</span> 생산 수량 및 작업 현황 집계</li>
+        <li><span>▸</span> 이상 상황 알림 기능</li>
+        <li><span>▸</span> 관리자 없이도 생산 흐름 파악</li>
+      </ul>
+    </div>
+    <div class="sol-c reveal">
+      <div class="sol-ic">🔗</div>
+      <h3>데이터 수집 및 분석</h3>
+      <p>흩어진 데이터를 하나로 연결합니다. 장비별 데이터를 자동으로 수집하고 시각화 대시보드로 제공합니다.</p>
+      <ul class="sol-fl">
+        <li><span>▸</span> 장비별 데이터 자동 수집</li>
+        <li><span>▸</span> 생산 데이터 통합 관리</li>
+        <li><span>▸</span> 시각화 대시보드 제공</li>
+        <li><span>▸</span> 데이터 기반 의사결정 지원</li>
+      </ul>
+    </div>
+  </div>
+</section>
+<hr class="div">
+
+<!-- REFERENCES -->
+<section id="references">
+  <div class="chip reveal">Reference</div>
+  <h2 class="st reveal">구축 사례</h2>
+  <p class="sd reveal">실제 제조 현장에 적용된 솔루션 사례입니다</p>
+  <div class="ref-g">
+    <div class="ref-c reveal">
+      <span class="ref-badge">CASE 01</span>
+      <h3>자동화 장비 모니터링 시스템 구축</h3>
+      <ul><li>생산 설비 데이터 실시간 수집</li><li>가동률 분석 및 시각화 구현</li><li>이상 발생 즉각 알림 시스템 연동</li></ul>
+    </div>
+    <div class="ref-c reveal">
+      <span class="ref-badge">CASE 02</span>
+      <h3>식품 제조 관리 시스템 구축</h3>
+      <ul><li>생산 / 재고 / 위생 관리 통합</li><li>수기 관리 → 디지털 전환</li><li>HACCP 기준 위생 체크리스트 자동화</li></ul>
+    </div>
+  </div>
+</section>
+<hr class="div">
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="chip reveal">Contact</div>
+  <h2 class="st reveal">제조 현장의 문제를<br>함께 해결합니다</h2>
+  <div class="cw">
+    <div class="ci reveal">
+      <p>편하게 문의 주시면 빠르게 답변드리겠습니다.<br>현장 방문 상담도 가능합니다.</p>
+      <div class="ci-det">
+        <div class="cdr"><span class="cdl">주소</span><span class="cdv">서울시 동대문구 고산자로 34길 70, 527호</span></div>
+        <div class="cdr"><span class="cdl">이메일</span><span class="cdv"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="790a14180b0d390918011a571a1657120b">[email&#160;protected]</a></span></div>
+        <div class="cdr"><span class="cdl">사업</span><span class="cdv">스마트 제조 · Foodly · 맞춤형 개발</span></div>
+      </div>
+    </div>
+    <div class="cf reveal">
+      <div class="cf-row">
+        <div class="fg"><label>회사명</label><input type="text" placeholder="회사명을 입력하세요"></div>
+        <div class="fg"><label>담당자명</label><input type="text" placeholder="성함을 입력하세요"></div>
+      </div>
+      <div class="cf-row">
+        <div class="fg"><label>연락처</label><input type="tel" placeholder="010-0000-0000"></div>
+        <div class="fg"><label>이메일</label><input type="email" placeholder="example@company.com"></div>
+      </div>
+      <div class="fg"><label>문의 내용</label><textarea placeholder="문의하실 내용을 자유롭게 작성해 주세요"></textarea></div>
+      <div class="cf-sub"><button id="send-btn">문의 보내기 →</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="fl">PAX<span>C</span></div>
+  <div class="fi">서울시 동대문구 고산자로 34길 70, 527호<br><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b5c6d8d4c7c1f5c5d4cdd69bd6da9bdec7">[email&#160;protected]</a><br>© 2025 PAXC. All rights reserved.</div>
+</footer>
+
+<script>
+const els = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+},{threshold:.07});
+els.forEach(el=>io.observe(el));
+
+document.getElementById('send-btn').addEventListener('click',function(){
+  this.textContent='전송 완료 ✓';this.style.background='#10b981';
+  setTimeout(()=>{this.textContent='문의 보내기 →';this.style.background='';},2800);
+});
+
+// Hamburger menu
+const hamBtn = document.getElementById('ham-btn');
+const mobMenu = document.getElementById('mob-menu');
+hamBtn.addEventListener('click', () => {
+  hamBtn.classList.toggle('open');
+  mobMenu.classList.toggle('open');
+  document.body.style.overflow = mobMenu.classList.contains('open') ? 'hidden' : '';
+});
+mobMenu.querySelectorAll('a').forEach(a => {
+  a.addEventListener('click', () => {
+    hamBtn.classList.remove('open');
+    mobMenu.classList.remove('open');
+    document.body.style.overflow = '';
+  });
+});
+</script>
