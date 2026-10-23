@@ -58,6 +58,20 @@ export async function unpublish(date: string): Promise<SaveResult> {
   return { ok: true, message: `${date} 글을 내렸습니다.` };
 }
 
+export async function setSupportStatus(form: FormData) {
+  const { sb, user } = await getAdmin();
+  if (!sb || !user) return;
+  const id = String(form.get('id') || '');
+  const status = form.get('status') === 'hidden' ? 'hidden' : 'published';
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) return;
+  await sb.from('support_programs').update({ status, updated_at: new Date().toISOString() }).eq('id', id);
+  revalidatePath('/');
+  revalidatePath('/support');
+  revalidatePath(`/support/${id}`);
+  revalidatePath('/sitemap.xml');
+  revalidatePath('/admin');
+}
+
 export async function signOut() {
   const { sb } = await getAdmin();
   await sb?.auth.signOut();

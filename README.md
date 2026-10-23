@@ -66,3 +66,71 @@ npm run dev                  # http://localhost:3000
 npm run build                # 배포 전 확인
 ```
 환경변수가 없어도 화면은 뜨고, 인기글 자리는 "준비 중"으로 표시됩니다.
+
+## 지원사업 자동 등록 (기업마당 → 홈페이지 → 네이버 카페)
+
+홈페이지가 **원본**이 되도록, 파이프라인은 카페보다 홈페이지에 먼저 올립니다.
+
+```
+기업마당 API → 필터링·분류 → ① POST /api/support (홈페이지 주소 받음)
+                              → ② 네이버 카페 글쓰기 (본문에 홈페이지 주소 포함)
+                              → ③ PATCH /api/support (카페 글 주소 기록)
+```
+
+### 준비 (한 번만)
+1. Supabase SQL Editor에서 `supabase/support.sql` 실행
+2. Vercel 환경변수 추가 (Type: **Secret**, Production + Preview)
+   - `SUPABASE_SERVICE_ROLE_KEY` — Supabase > Project Settings > API 의 `service_role`(또는 Secret) 키
+   - `SUPPORT_API_TOKEN` — 24자 이상의 임의 문자열. 파이프라인에도 같은 값을 넣습니다.
+3. Redeploy
+
+### API
+모든 요청에 헤더 `Authorization: Bearer <SUPPORT_API_TOKEN>`, 본문은 JSON.
+
+**POST `/api/support`** — 등록·수정 (한 건 또는 최대 100건 배열, 같은 `id`면 덮어씀)
+
+| 필드 | 필수 | 설명 |
+| --- | --- | --- |
+| `id` | ✓ | 공고 고유 ID (영문·숫자·`-`·`_`, 64자 이내). 기업마당 공고 ID 사용 권장 |
+| `category` | ✓ | `manufacturing`(제조업) · `distribution`(유통) · `education`(교육) |
+| `title` | ✓ | 공고명 |
+| `source_url` | ✓ | 기업마당 원문 주소 |
+| `agency` |  | 소관·수행 기관 |
+| `target` |  | 지원 대상 |
+| `summary` |  | PAXC가 쓴 요약 (원문 통째 복사 금지) |
+| `period_start`, `period_end` |  | `2026-10-31`, `20261031`, `2026.10.31` 모두 가능. 상시면 생략 |
+| `tags` |  | 문자열 배열 (최대 10개) |
+
+응답: `{"ok": true, "results": [{"id": "...", "url": "https://paxc.co.kr/support/..."}]}` → 이 `url`을 카페 글 본문에 넣으세요.
+
+**PATCH `/api/support`** — `{"id": "...", "cafe_url": "https://cafe.naver.com/food2008/12345"}` 카페 글 주소 기록.
+`{"id": "...", "status": "hidden"}`이면 홈페이지에서 내립니다.
+
+### 파이프라인 예시 (Python)
+```python
+import os, requests
+
+API = "https://paxc.co.kr/api/support"
+H = {"Authorization": f"Bearer {os.environ['SUPPORT_API_TOKEN']}"}
+
+def publish(item, category, summary):
+    # item: 기업마당에서 받아 필터링한 공고 한 건 (필드 이름은 사용 중인 코드에 맞게)
+    res = requests.post(API, headers=H, json={
+        "id": item["id"],
+        "category": category,            # manufacturing / distribution / education
+        "title": item["title"],
+        "agency": item.get("agency", ""),
+        "target": item.get("target", ""),
+        "summary": summary,
+        "period_start": item.get("start"),
+        "period_end": item.get("end"),
+        "source_url": item["url"],
+        "tags": item.get("tags", []),
+    }, timeout=20)
+    res.raise_for_status()
+    home_url = res.json()["results"][0]["url"]
+
+    cafe_url = post_to_naver_cafe(item, summary, home_url)   # 기존 카페 글쓰기 함수 (본문에 home_url 포함)
+
+    requests.patch(API, headers=H, json={"id": item["id"], "cafe_url": cafe_url}, timeout=20).raise_for_status()
+```

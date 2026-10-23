@@ -164,6 +164,36 @@ img, svg { max-width: 100%; }
 .pager { display: flex; justify-content: space-between; gap: 12px; margin-top: 22px; flex-wrap: wrap; }
 .crumb { font-size: 14px; margin-bottom: 8px; }
 
+/* ---------- support programs ---------- */
+.support-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; align-items: start; }
+.support-win { display: flex; flex-direction: column; }
+.support-win-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px 4px; }
+.support-win-head h3 { margin: 0; font-size: 18px; }
+.sp-list { list-style: none; margin: 0; padding: 0 0 4px; }
+.sp-list li { border-bottom: 2px dashed #c9c1a8; }
+.sp-list li:last-child { border-bottom: 0; }
+.sp-list a { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; align-items: baseline; padding: 12px 18px; color: var(--navy); text-decoration: none; }
+.sp-list a:hover { background: #fffaf0; color: var(--navy); }
+.sp-list .sp-title { font-weight: 700; }
+.sp-list .sp-meta { grid-column: 2; font-size: 13px; color: var(--ink-soft); }
+.sp-list-full a { grid-template-columns: auto auto 1fr; }
+.sp-list-full .sp-meta { grid-column: 3; }
+.sp-cat { font-size: 13px; border: 2px solid var(--navy-deep); padding: 0 6px; background: #fff; }
+.dday { display: inline-block; min-width: 54px; text-align: center; font-size: 13px; font-weight: 700; border: 2px solid var(--navy-deep); padding: 0 6px; background: var(--mint); color: var(--navy); }
+.dday-urgent { background: var(--pink); }
+.dday-closed { background: #d9d4c4; color: #555a7a; }
+.sp-empty { padding: 14px 18px; margin: 0; }
+.sp-more { align-self: flex-end; margin: 6px 18px 14px; color: var(--navy); font-weight: 700; font-size: 14px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.tabs a { text-decoration: none; padding: 8px 14px; border: 2px solid var(--mint); color: var(--mint); font-size: 14px; }
+.tabs a.active { background: var(--mint); color: var(--navy); font-weight: 700; }
+.sp-dl { display: grid; grid-template-columns: max-content 1fr; gap: 6px 18px; margin: 0; }
+.sp-dl dt { font-weight: 700; }
+.sp-dl dd { margin: 0; }
+.sp-summary { margin-top: 18px; border-top: 3px solid var(--navy-deep); padding-top: 14px; }
+.sp-summary p { margin: 6px 0 0; white-space: pre-wrap; }
+.sp-tags { margin: 14px 0 0; color: #137a66; font-size: 14px; }
+
 /* ---------- forms ---------- */
 .contact-win { max-width: 760px; margin: 0 auto; box-shadow: 9px 9px 0 var(--navy-deep); }
 .form-stack { display: flex; flex-direction: column; gap: 16px; padding: 24px; }

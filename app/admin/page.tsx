@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getAdmin } from '@/lib/supabase/server';
-import { signOut } from './actions';
+import { CATEGORIES, dday, type SupportProgram } from '@/lib/support';
+import { setSupportStatus, signOut } from './actions';
 
 type Row = { date: string; status: 'draft' | 'published'; items: { title: string }[]; updated_at: string };
 type Inquiry = { id: number; created_at: string; kind: string; company: string; phone: string; message: string };
@@ -20,9 +21,10 @@ export default async function AdminHome() {
     );
   }
 
-  const [{ data: posts }, { data: inquiries }] = await Promise.all([
+  const [{ data: posts }, { data: inquiries }, { data: programs }] = await Promise.all([
     sb.from('daily_top5').select('date, status, items, updated_at').order('date', { ascending: false }).limit(60),
     sb.from('inquiries').select('*').order('created_at', { ascending: false }).limit(30),
+    sb.from('support_programs').select('*').order('created_at', { ascending: false }).limit(40),
   ]);
 
   return (
@@ -57,6 +59,42 @@ export default async function AdminHome() {
                 ))
               ) : (
                 <tr><td colSpan={5}>아직 쓴 글이 없습니다. 첫 TOP 5를 써 보세요.</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <h2 className="h2" style={{ fontSize: 28, marginTop: 48 }}>지원사업 (자동 등록)</h2>
+      <p className="note-muted" style={{ marginTop: 0 }}>파이프라인이 자동으로 올린 공고입니다. 잘못 걸러진 공고는 숨기면 홈페이지에서 바로 내려갑니다.</p>
+      <div className="win">
+        <div className="win-bar bar-mint">SUPPORT.DB</div>
+        <div className="table-wrap">
+          <table className="table">
+            <thead><tr><th>마감</th><th>분류</th><th>공고</th><th>카페</th><th>상태</th></tr></thead>
+            <tbody>
+              {(programs as SupportProgram[] | null)?.length ? (
+                (programs as SupportProgram[]).map((p) => (
+                  <tr key={p.id}>
+                    <td style={{ whiteSpace: 'nowrap' }}>{dday(p.period_end).label}</td>
+                    <td style={{ whiteSpace: 'nowrap' }}>{CATEGORIES[p.category]?.short}</td>
+                    <td>
+                      {p.status === 'published' ? <Link href={`/support/${p.id}`} style={{ color: 'var(--navy)' }}>{p.title}</Link> : <span style={{ color: 'var(--ink-soft)' }}>{p.title}</span>}
+                    </td>
+                    <td>{p.cafe_url ? <a href={p.cafe_url} target="_blank" rel="noopener" style={{ color: 'var(--navy)' }}>글 보기</a> : <span style={{ color: 'var(--ink-soft)' }}>대기</span>}</td>
+                    <td>
+                      <form action={setSupportStatus}>
+                        <input type="hidden" name="id" value={p.id} />
+                        <input type="hidden" name="status" value={p.status === 'published' ? 'hidden' : 'published'} />
+                        <button type="submit" className={`badge ${p.status === 'published' ? 'badge-pub' : 'badge-draft'}`} style={{ cursor: 'pointer', font: 'inherit', fontSize: 14 }}>
+                          {p.status === 'published' ? '공개 · 숨기기' : '숨김 · 다시 공개'}
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr><td colSpan={5}>아직 등록된 공고가 없습니다. 파이프라인을 연결하면 여기에 쌓입니다.</td></tr>
               )}
             </tbody>
           </table>

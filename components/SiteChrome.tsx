@@ -13,6 +13,7 @@ export function SiteHeader() {
           <Link href="/#about">회사소개</Link>
           <Link href="/#solution">솔루션</Link>
           <Link href="/today">오늘의 인기글</Link>
+          <Link href="/support">지원사업</Link>
           <Link href="/#contact" className="btn btn-pink btn-sm">
             상담하기
           </Link>

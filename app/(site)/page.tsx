@@ -4,7 +4,9 @@ import { LogoHero } from '@/components/Logo';
 import { Sprite, VB } from '@/components/Sprites';
 import { Top5Empty, Top5Window } from '@/components/Top5List';
 import { ContactForm } from '@/components/ContactForm';
+import { SupportWindow } from '@/components/SupportList';
 import { latestPost } from '@/lib/posts';
+import { CATEGORY_KEYS, openByCategory } from '@/lib/support';
 import { SITE } from '@/lib/site';
 
 export const revalidate = 600;
@@ -29,7 +31,7 @@ const MOMENTS: [string, string, string][] = [
 ];
 
 export default async function Home() {
-  const post = await latestPost();
+  const [post, support] = await Promise.all([latestPost(), openByCategory(4)]);
 
   return (
     <>
@@ -169,8 +171,29 @@ export default async function Home() {
           </div>
         </section>
 
+        {/* SUPPORT PROGRAMS */}
+        <section id="support" className="section">
+          <div className="wrap section-inner">
+            <div className="deco" style={{ right: 64, top: 56, width: 56, animationDuration: '2.4s' }} aria-hidden="true"><Sprite id="pxc-fighter" vb={VB.fighter} w="100%" /></div>
+            <p className="eyebrow">04 · SUPPORT</p>
+            <h2 className="h2">식품관련업을 하는<br />사장님을 위한 지원사업</h2>
+            <p className="lead" style={{ color: 'var(--muted)', marginBottom: 28 }}>
+              기업마당의 공고 중 식품 제조·유통 사장님께 맞는 것만 PAXC가 매일 골라, 마감이 가까운 순서로 정리합니다.
+            </p>
+            <div className="support-grid">
+              {CATEGORY_KEYS.map((k) => (
+                <SupportWindow key={k} category={k} items={support[k]} />
+              ))}
+            </div>
+            <div className="today-foot">
+              <Link href="/support">◀ 지원사업 전체 보기</Link>
+              <a href={SITE.cafe.url} target="_blank" rel="noopener" className="btn btn-pink btn-sm">카페에서 지원사업 소식 받기 ▶</a>
+            </div>
+          </div>
+        </section>
+
         {/* CONTACT */}
-        <section id="contact" className="section">
+        <section id="contact" className="section section-alt">
           <div className="wrap section-inner">
             <div style={{ width: 64, margin: '0 auto 14px', animation: 'pxc-bob 1.6s ease-in-out infinite' }} aria-hidden="true">
               <Sprite id="pxc-fighter" vb={VB.fighter} w="100%" />
