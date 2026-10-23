@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import { SiteFooter, SiteHeader } from '@/components/SiteChrome';
 import { Sprite, VB } from '@/components/Sprites';
+import { Starfield } from '@/components/Starfield';
 
 export default function NotFound() {
   return (
     <>
+      <Starfield />
       <SiteHeader />
       <main className="section">
         <div className="wrap section-inner" style={{ textAlign: 'center' }}>

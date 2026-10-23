@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { getAdmin } from '@/lib/supabase/server';
+import { StillStars } from '@/components/Starfield';
 import { signOut } from './actions';
 
 export const metadata: Metadata = { title: '관리자', robots: { index: false, follow: false } };
@@ -10,6 +11,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { user } = await getAdmin();
   return (
     <>
+      <StillStars />
       <header className="admin-bar">
         <div className="wrap">
           <Link href="/" className="admin-brand">

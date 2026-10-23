@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
 import { Sprites } from '@/components/Sprites';
-import { Starfield } from '@/components/Starfield';
 import { SITE } from '@/lib/site';
 
 const galmuri = localFont({
@@ -66,10 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko" className={galmuri.variable}>
       <body>
         <Sprites />
-        <div className="page">
-          <Starfield />
-          {children}
-        </div>
+        <div className="page">{children}</div>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       </body>
     </html>
