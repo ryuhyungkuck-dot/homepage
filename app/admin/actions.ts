@@ -4,8 +4,21 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { getAdmin } from '@/lib/supabase/server';
 import { isDate, type Top5Item } from '@/lib/site';
+import { syncBizinfo } from '@/lib/sync-bizinfo';
 
 export type SaveResult = { ok: boolean; message: string };
+
+export async function runBizinfoSync(): Promise<SaveResult> {
+  const { user } = await getAdmin();
+  if (!user) return { ok: false, message: '로그인이 필요합니다.' };
+  const r = await syncBizinfo();
+  if (!r.ok) return { ok: false, message: `불러오기 실패: ${r.error}` };
+  const c = r.byCategory;
+  return {
+    ok: true,
+    message: `기업마당 공고 ${r.fetched}건 중 식품 관련 ${r.matched}건 (새로 ${r.added} · 갱신 ${r.updated}) — 제조업 ${c.manufacturing || 0} · 유통 ${c.distribution || 0} · 교육 ${c.education || 0}`,
+  };
+}
 
 export async function saveTop5(input: { date: string; items: Top5Item[]; note: string; status: 'draft' | 'published' }): Promise<SaveResult> {
   const { sb, user } = await getAdmin();

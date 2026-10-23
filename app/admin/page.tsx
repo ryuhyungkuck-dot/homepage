@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getAdmin } from '@/lib/supabase/server';
 import { CATEGORIES, dday, type SupportProgram } from '@/lib/support';
 import { setSupportStatus, signOut } from './actions';
+import { SyncButton } from './SyncButton';
 
 type Row = { date: string; status: 'draft' | 'published'; items: { title: string }[]; updated_at: string };
 type Inquiry = { id: number; created_at: string; kind: string; company: string; phone: string; message: string };
@@ -66,7 +67,8 @@ export default async function AdminHome() {
       </div>
 
       <h2 className="h2" style={{ fontSize: 28, marginTop: 48 }}>지원사업 (자동 등록)</h2>
-      <p className="note-muted" style={{ marginTop: 0 }}>파이프라인이 자동으로 올린 공고입니다. 잘못 걸러진 공고는 숨기면 홈페이지에서 바로 내려갑니다.</p>
+      <p className="note-muted" style={{ marginTop: 0 }}>매일 오전 7시쯤 기업마당에서 식품 관련 공고를 자동으로 불러옵니다. 잘못 걸러진 공고는 숨기면 홈페이지에서 바로 내려가고, 다음 불러오기에도 다시 나타나지 않습니다.</p>
+      <SyncButton />
       <div className="win">
         <div className="win-bar bar-mint">SUPPORT.DB</div>
         <div className="table-wrap">

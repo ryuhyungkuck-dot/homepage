@@ -134,3 +134,31 @@ def publish(item, category, summary):
 
     requests.patch(API, headers=H, json={"id": item["id"], "cafe_url": cafe_url}, timeout=20).raise_for_status()
 ```
+
+## 기업마당 자동 수집 (홈페이지가 직접)
+
+매일 오전 7시(한국 시간)쯤 Vercel Cron이 `/api/cron/bizinfo`를 호출합니다.
+
+1. 기업마당 지원사업정보 API에서 최신 공고 500건을 받습니다.
+2. 식품 관련 공고만 고릅니다 (식품·HACCP·해썹·김치·장류·제과·음료·밀키트 등, 또는 스마트공장).
+3. 제목·개요로 3개 분류에 자동 배치합니다: 교육(교육·아카데미·설명회 …) → 유통(판로·입점·수출·박람회 …) → 나머지는 제조업.
+4. 이미 마감된 공고는 건너뛰고, 같은 공고는 갱신합니다. 관리자가 숨긴 공고와 카페 주소는 그대로 둡니다.
+
+관리자 화면의 **기업마당에서 지금 불러오기** 버튼으로 바로 실행할 수도 있습니다.
+
+필요한 환경변수: `BIZINFO_API_KEY`(기업마당 인증키), `CRON_SECRET`(24자 이상 임의 문자열), `SUPABASE_SERVICE_ROLE_KEY`.
+
+### 네이버 카페 글쓰기 파이프라인과 연결
+카페 파이프라인은 더 이상 기업마당을 직접 부를 필요가 없습니다. 홈페이지에서 아직 카페에 안 올린 공고를 받아 올리고, 올린 주소를 알려주면 됩니다.
+
+```python
+import os, requests
+BASE = "https://paxc.co.kr"
+H = {"Authorization": f"Bearer {os.environ['SUPPORT_API_TOKEN']}"}
+
+items = requests.get(f"{BASE}/api/support/pending", headers=H, timeout=20).json()["items"]
+for it in items:
+    # it: id, category_label, title, agency, target, summary, period_start, period_end, source_url, home_url, tags
+    cafe_url = post_to_naver_cafe(it)   # 기존 카페 글쓰기 함수 — 본문에 it["home_url"]을 넣어 주세요
+    requests.patch(f"{BASE}/api/support", headers=H, json={"id": it["id"], "cafe_url": cafe_url}, timeout=20).raise_for_status()
+```

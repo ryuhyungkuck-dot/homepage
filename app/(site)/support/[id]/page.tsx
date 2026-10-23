@@ -63,7 +63,7 @@ export default async function SupportDetail({ params }: Props) {
               </dl>
               {p.summary ? (
                 <div className="sp-summary">
-                  <strong>PAXC 한눈에 정리</strong>
+                  <strong>사업 개요</strong>
                   <p>{p.summary}</p>
                 </div>
               ) : null}
@@ -80,7 +80,7 @@ export default async function SupportDetail({ params }: Props) {
             )}
           </div>
           <p className="note-muted" style={{ marginTop: 18 }}>
-            요약은 PAXC가 정리한 것으로, 신청 자격·일정·서류는 반드시 기업마당 원문에서 확인하세요.
+            기업마당(bizinfo.go.kr) 공고를 바탕으로 PAXC가 식품 관련 공고만 골라 정리했습니다. 신청 자격·일정·서류는 반드시 기업마당 원문에서 확인하세요.
           </p>
           <div className="today-foot">
             <Link href={`/support?c=${p.category}`}>◀ {c.label} 목록</Link>
