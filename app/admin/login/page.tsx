@@ -4,6 +4,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { browserClient } from '@/lib/supabase/browser';
 
+function explain(e: { message?: string; code?: string; status?: number }) {
+  const msg = (e.message || '').toLowerCase();
+  if (e.code === 'email_not_confirmed' || msg.includes('not confirmed'))
+    return '이메일 인증이 안 된 계정입니다. Supabase > Authentication > Users에서 이 계정을 인증(Confirm)해 주세요.';
+  if (e.code === 'invalid_credentials' || msg.includes('invalid login credentials'))
+    return '이메일 또는 비밀번호가 맞지 않습니다. Supabase > Authentication > Users에 이 이메일의 계정이 있는지 확인하세요.';
+  if (msg.includes('invalid api key') || msg.includes('no api key') || e.status === 401)
+    return '홈페이지에 넣은 Supabase 키가 맞지 않습니다. Vercel 환경변수 NEXT_PUBLIC_SUPABASE_ANON_KEY를 확인하세요.';
+  if (e.status === 429 || msg.includes('rate limit')) return '로그인 시도가 너무 많습니다. 몇 분 뒤 다시 시도하세요.';
+  return `로그인 실패: ${e.message || '알 수 없는 오류'}`;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -18,9 +30,15 @@ export default function LoginPage() {
     if (!sb) return setErr('Supabase 설정(환경변수)이 없습니다.');
     if (!email.trim() || !pw) return setErr('이메일과 비밀번호를 입력하세요.');
     setBusy(true);
-    const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password: pw });
+    let error: { message?: string; code?: string; status?: number } | null = null;
+    try {
+      ({ error } = await sb.auth.signInWithPassword({ email: email.trim(), password: pw }));
+    } catch {
+      setBusy(false);
+      return setErr('Supabase 주소에 연결할 수 없습니다. Vercel 환경변수 NEXT_PUBLIC_SUPABASE_URL을 확인하세요.');
+    }
     setBusy(false);
-    if (error) return setErr('이메일 또는 비밀번호가 맞지 않습니다.');
+    if (error) return setErr(explain(error));
     router.replace('/admin');
     router.refresh();
   }
