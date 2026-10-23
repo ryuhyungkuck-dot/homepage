@@ -12,7 +12,7 @@ export const SITE = {
   email: 'smart@paxc.co.kr',
   address: '서울시 동대문구 고산자로 34길 70, 527호',
   cafe: {
-    name: process.env.NEXT_PUBLIC_CAFE_NAME || '식품제조 카페',
+    name: process.env.NEXT_PUBLIC_CAFE_NAME || '식품제조',
     url: 'https://cafe.naver.com/food2008',
   },
   foodly: 'https://www.foodly.co.kr/',
