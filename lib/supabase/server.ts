@@ -1,9 +1,10 @@
 import { createServerClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
+import { supabaseKey, supabaseUrl } from './env';
 
-const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const URL = supabaseUrl();
+const KEY = supabaseKey();
 
 export const supabaseConfigured = Boolean(URL && KEY);
 
@@ -37,7 +38,7 @@ export async function getAdmin() {
   const sb = sessionClient();
   if (!sb) return { sb: null, user: null };
   const { data } = await sb.auth.getUser();
-  const admin = process.env.ADMIN_EMAIL?.toLowerCase();
+  const admin = process.env.ADMIN_EMAIL?.trim().toLowerCase();
   const user = data.user && admin && data.user.email?.toLowerCase() === admin ? data.user : null;
   return { sb, user };
 }
